@@ -1,9 +1,8 @@
 ---
  - name: anchore-cli scan
-   hosts: anchore
-   become: yes
+   hosts: 127.0.0.1
    vars:
-     scan_image_name: "docker.io/library/ubuntu:latest"
+     scan_image_name: "docker.io/jagadesh1982/packer-ansible:latest"
      anchore_vars:
        ANCHORE_CLI_URL: http://localhost:8228/v1
        ANCHORE_CLI_USER: admin
@@ -21,13 +20,14 @@
      - name: downloading image
        docker_image:
          name: "{{ scan_image_name }}"
+         source: pull
 
      - name: adding image for analysis
-       command: "anchore-cli image add {{ scan_image_name }}"
+       shell: "docker-compose exec -T api anchore-cli image add {{ scan_image_name }}"
        environment: "{{anchore_vars}}"
     
      - name: wait for analysis to compelte
-       command: "anchore-cli image content {{ scan_image_name }} os"
+       command: "docker-compose exec -T api anchore-cli image wait {{ scan_image_name }}"
        register: analysis
        until: analysis.rc != 1
        retries: 10
@@ -36,10 +36,24 @@
        environment: "{{anchore_vars}}"
 
      - name: vulnerabilities results
-       command: "anchore-cli image vuln {{ scan_image_name }} os"
+       command: "docker-compose exec -T api anchore-cli image vuln {{ scan_image_name }} os"
        register: vuln_output
        environment: "{{anchore_vars}}"
-    
+     
+     - name: Complaince results
+       shell: "docker-compose exec -T api anchore-cli evaluate check {{ scan_image_name }} | sed -n '3 p'"
+       register: check_image_status
+       environment: "{{anchore_vars}}"
+       ignore_errors: true
+
      - name: "vulnerabilities in {{ scan_image_name }}"
        debug:
          msg: "{{ vuln_output.stdout_lines }}"
+
+     - name: Compliance Check Status
+       debug:
+         msg: "{{ check_image_status.stdout }}"
+       
+     - name: Copy the Compliance Value to a file for Further Automation
+       shell: echo {{ check_image_status.stdout }} >> /tmp/status
+      

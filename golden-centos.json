@@ -25,7 +25,7 @@
         },
         {
             "type": "ansible-local",
-            "playbook_file": "playbooks/{{ user `LANGUAGE` }}.yml"
+            "playbook_file": "/root/ContainerAsService/playbooks/{{ user `LANGUAGE` }}.yml"
         }
     ],
 
