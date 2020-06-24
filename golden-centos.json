@@ -1,0 +1,40 @@
+ {
+    "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "os_packages": "{{ env `OS_PACKAGES` }}",
+    "language": "{{ env `LANGUAGE` }}" 
+      },
+
+    "builders":[{
+        "type": "docker",
+        "image": "{{user `BASE_IMAGE`}}",
+        "export_path": "image.tar"
+    }],
+
+    "provisioners":[
+        {
+            "type": "shell",
+            "inline": [
+                "echo $language",
+                "yum -y update",
+                "yum -y install {{ user `OS_PACKAGES` }}",
+                "yum -y install centos-release-ansible-29.noarch",
+                "yum -y install ansible"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "playbooks/{{ user `LANGUAGE` }}.yml"
+        }
+    ],
+
+    "post-processors": [
+        {
+            "type": "docker-import",
+            "repository": "example/packer-ansible",
+            "tag": "0.1"
+        }
+    ]
+
+}
