@@ -9,7 +9,15 @@
     "builders":[{
         "type": "docker",
         "image": "{{user `BASE_IMAGE`}}",
-        "export_path": "image.tar"
+        "commit": true,
+        "changes": [
+              "USER root",
+              "WORKDIR /var/www",
+              "ENV HOSTNAME www.example.com",
+              "EXPOSE 80 443",
+              "LABEL version=1.0",
+              "ONBUILD RUN date"
+        ]
     }],
 
     "provisioners":[
@@ -25,16 +33,17 @@
         },
         {
             "type": "ansible-local",
-            "playbook_file": "/root/ContainerAsService/playbooks/{{ user `LANGUAGE` }}.yml"
+            "playbook_file": "./playbooks/{{ user `LANGUAGE` }}.yml"
         }
     ],
 
     "post-processors": [
         {
             "type": "docker-import",
-            "repository": "example/packer-ansible",
-            "tag": "0.1"
-        }
+            "repository": "docker.io/jagadesh1982/packer-ansible-example",
+            "tag": "latest"
+        },
+       "docker-push"
     ]
 
 }
