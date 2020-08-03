@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-USERNAME="jagadesh1982"
-PASSWORD="jagadesh1982@"
+USERNAME="jagadesh****"
+PASSWORD="jagadesh****@"
 ORGANIZATION="containerasservice"
 IMAGE="packer-ansible-example"
 
