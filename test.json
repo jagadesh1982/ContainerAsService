@@ -1,0 +1,48 @@
+ {
+    "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "os_packages": "{{ env `OS_PACKAGES` }}",
+    "language": "{{ env `LANGUAGE` }}" 
+      },
+
+    "builders":[{
+        "type": "docker",
+        "image": "{{user `BASE_IMAGE`}}",
+        "commit": true,
+        "changes": [
+              "USER root",
+              "WORKDIR /var/www",
+              "ENV HOSTNAME www.example.com",
+              "EXPOSE 80 443",
+              "LABEL version=1.0",
+              "ONBUILD RUN date"
+        ]
+    }],
+
+    "provisioners":[
+        {
+            "type": "shell",
+            "inline": [
+                "echo $language",
+                "yum -y update",
+                "yum -y install {{ user `OS_PACKAGES` }}",
+                "yum -y install centos-release-ansible-29.noarch",
+                "yum -y install ansible"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "./playbooks/{{ user `LANGUAGE` }}.yml"
+        }
+    ],
+
+    "post-processors": [
+        {
+            "type": "docker-tag",
+            "repository": "docker.io/jagadesh1982/packer-ansible-example",
+            "tag": "latest"
+        }      
+    ]
+
+}
